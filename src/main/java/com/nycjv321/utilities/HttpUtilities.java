@@ -24,7 +24,7 @@ import java.net.URISyntaxException;
 /**
  * Created by Javier L. Velasquez (nycjv321@gmail.com) on 8/30/2014.
  */
-public class HttpUtilities {
+    public class HttpUtilities {
     private static final Logger logger = LogManager.getLogger(HttpUtilities.class
             .getName());
 
@@ -97,8 +97,8 @@ public class HttpUtilities {
      * @param headers a series of headers to add to the HttpPost request
      */
     private static void addHeaderToPost(HttpPost httpPost, Header... headers) {
-        for (int i = 0; i < headers.length; ++i) {
-            httpPost.addHeader(headers[i]);
+        for (Header header : headers) {
+            httpPost.addHeader(header);
         }
     }
 
