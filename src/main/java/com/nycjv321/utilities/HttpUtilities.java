@@ -4,10 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -49,7 +46,7 @@ import java.net.URISyntaxException;
      */
     public static HttpResponse head(URI url) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpHead httpHead = new HttpHead(url);
+        HttpRequestBase httpHead = new HttpHead(url);
         HttpResponse response = null;
         try {
             response = httpClient.execute(httpHead);
@@ -57,6 +54,12 @@ import java.net.URISyntaxException;
             return response;
         } catch (IOException e) {
             logger.error(e);
+        }finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                logger.error(e);
+            }
         }
         return null;
     }
@@ -68,7 +71,7 @@ import java.net.URISyntaxException;
      */
     public static String get(URI url) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet(url);
+        HttpRequestBase httpGet = new HttpGet(url);
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpGet);
@@ -84,6 +87,11 @@ import java.net.URISyntaxException;
             try {
                 if (response != null)
                     response.close();
+            } catch (IOException e) {
+                logger.error(e);
+            }
+            try {
+                httpClient.close();
             } catch (IOException e) {
                 logger.error(e);
             }
@@ -150,8 +158,12 @@ import java.net.URISyntaxException;
                 if (response != null)
                     response.close();
             } catch (IOException e) {
-                System.out.println(e);
-
+                logger.error(e);
+            }
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                logger.error(e);
             }
         }
         return "";
