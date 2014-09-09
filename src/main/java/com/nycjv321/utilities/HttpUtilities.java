@@ -21,12 +21,13 @@ import java.net.URISyntaxException;
 /**
  * Created by Javier L. Velasquez (nycjv321@gmail.com) on 8/30/2014.
  */
-    public class HttpUtilities {
+public class HttpUtilities {
     private static final Logger logger = LogManager.getLogger(HttpUtilities.class
             .getName());
 
     /**
      * Create a URI from a string
+     *
      * @param string a string representing a URI
      * @return a URI representing the string
      */
@@ -41,20 +42,21 @@ import java.net.URISyntaxException;
 
     /**
      * Perform a HEAD request on a URI
+     *
      * @param url a URI to request
      * @return the string representing the content returned from the HEAD request
      */
     public static HttpResponse head(URI url) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpRequestBase httpHead = new HttpHead(url);
-        HttpResponse response = null;
+        HttpResponse response;
         try {
             response = httpClient.execute(httpHead);
             logger.debug(String.format("Got %s response when requesting %s", response.getStatusLine(), url.toString()));
             return response;
         } catch (IOException e) {
             logger.error(e);
-        }finally {
+        } finally {
             try {
                 httpClient.close();
             } catch (IOException e) {
@@ -66,6 +68,7 @@ import java.net.URISyntaxException;
 
     /**
      * Perform a GET request on a URI
+     *
      * @param url a URI to request
      * @return the string representing the content returned from the GET request
      */
@@ -101,8 +104,9 @@ import java.net.URISyntaxException;
 
     /**
      * Add a series of headers to a POST request
+     *
      * @param httpPost a HttpPost object
-     * @param headers a series of headers to add to the HttpPost request
+     * @param headers  a series of headers to add to the HttpPost request
      */
     private static void addHeaderToPost(HttpPost httpPost, Header... headers) {
         for (Header header : headers) {
@@ -112,6 +116,7 @@ import java.net.URISyntaxException;
 
     /**
      * Create a string entity from the given string
+     *
      * @param string a string to convert to a string entity
      * @return a string entity representing the given strnig
      */
@@ -123,15 +128,17 @@ import java.net.URISyntaxException;
         }
         try {
             return new StringEntity("");
-        } catch (UnsupportedEncodingException e) {}
+        } catch (UnsupportedEncodingException e) {
+        }
         return null;
     }
 
     /**
      * Perform a POST request
-     * @param uri a uri to post to
+     *
+     * @param uri        a uri to post to
      * @param httpEntity a http entity to include in the request
-     * @param headers a list of headers to include in the request
+     * @param headers    a list of headers to include in the request
      * @return the return of the request
      */
     public static String post(URI uri, HttpEntity httpEntity, Header... headers) {
@@ -172,7 +179,8 @@ import java.net.URISyntaxException;
 
     /**
      * Create a Http Header
-     * @param name the key representing the header entry identifier
+     *
+     * @param name  the key representing the header entry identifier
      * @param value the value used to describe the key
      * @return the Header representing the name value pair
      */
