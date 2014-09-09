@@ -32,7 +32,7 @@ public interface JavaFXUtilities {
     }
 
     public default Label createLabel(String text, int width, Pos position) {
-        return createLabel(text, width, position);
+        return createLabel(text, width, 0, position, null);
     }
 
     public default Label createLabel(String text, int width, Pos position, Font font) {
