@@ -1,5 +1,7 @@
 package com.nycjv321.utilities;
 
+import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -106,6 +108,14 @@ public interface JavaFXUtilities {
         TextField textField = new TextField();
         textField.setAlignment(position);
         return textField;
+    }
+
+    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
+        ChoiceBox<Object> choiceBox = new ChoiceBox<>(types);
+        choiceBox.getSelectionModel().select(selected);
+        if (listener != null)
+        choiceBox.getSelectionModel().selectedIndexProperty().addListener(listener);
+        return choiceBox;
     }
 
 }
