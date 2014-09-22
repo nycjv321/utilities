@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 /**
  * Created by Javier L. Velasquez (nycjv321@gmail.com) on 8/30/2014.
  */
-public class HttpUtilities {
+public final class HttpUtilities {
     private static final Logger logger = LogManager.getLogger(HttpUtilities.class
             .getName());
 

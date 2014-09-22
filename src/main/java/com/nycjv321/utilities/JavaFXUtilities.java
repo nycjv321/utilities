@@ -45,11 +45,6 @@ public interface JavaFXUtilities {
         return createLabel(null, width, height, position, null);
     }
 
-
-    public default Label createLabel(String text, int width, int height, Pos position) {
-        return createLabel(text, width, height, position);
-    }
-
     public default Label createLabel(String text, int width, int height, Pos position, Font font) {
         Label label = new Label(text);
         if (width != 0)
@@ -116,6 +111,15 @@ public interface JavaFXUtilities {
         if (listener != null)
         choiceBox.getSelectionModel().selectedIndexProperty().addListener(listener);
         return choiceBox;
+    }
+
+    public default ScrollPane createScrollPane(Node node, boolean fitToWidth, double preferredWidth, double preferredHeight) {
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(fitToWidth);
+        scrollPane.setPrefWidth(preferredWidth);
+        scrollPane.setPrefHeight(preferredHeight);
+        scrollPane.setContent(node);
+        return scrollPane;
     }
 
 }
