@@ -16,7 +16,7 @@ public final class NumberUtilities {
      * @return
      */
     public static int getRandom(Random random, int min, int max) {
-        return min + random.nextInt(max);
+        return random.nextInt(max - min + 1) + min;
     }
 
     /**
