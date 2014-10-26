@@ -16,6 +16,21 @@ import javafx.scene.text.Font;
  * Created by Javier on 9/8/2014.
  */
 public interface JavaFXUtilities {
+
+    public default Tab createTab(String tabName) {
+        return new Tab(tabName);
+    }
+
+    public default void setTextLimit(TextField textField, int length) {
+        textField.setOnKeyTyped(event -> {
+            String string = textField.getText();
+            if (string.length() > length) {
+                textField.setText(string.substring(0, length));
+                textField.positionCaret(string.length());
+            }
+        });
+    }
+
     public default TitledPane createTiltedPane(String text, Node content) {
         TitledPane tiltedPane = new TitledPane();
         tiltedPane.setText(text);
@@ -69,13 +84,13 @@ public interface JavaFXUtilities {
             button.setAlignment(alignment);
         if (preferredWidth != 0)
             button.setPrefWidth(preferredWidth);
-        button.setOnAction(event);
+        if (event != null)
+            button.setOnAction(event);
         return button;
     }
 
     public default Image createImage(String resourcePath) {
         return new Image(getClass().getResourceAsStream(resourcePath));
-
     }
 
     public default void setToolTip(Control control, String value) {
@@ -105,11 +120,15 @@ public interface JavaFXUtilities {
         return textField;
     }
 
+    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected) {
+        return createChoiceBox(types, selected, null);
+    }
+
     public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
         ChoiceBox<Object> choiceBox = new ChoiceBox<>(types);
         choiceBox.getSelectionModel().select(selected);
         if (listener != null)
-        choiceBox.getSelectionModel().selectedIndexProperty().addListener(listener);
+            choiceBox.getSelectionModel().selectedIndexProperty().addListener(listener);
         return choiceBox;
     }
 
