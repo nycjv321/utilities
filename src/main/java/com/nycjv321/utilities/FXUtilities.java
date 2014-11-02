@@ -15,7 +15,15 @@ import javafx.scene.text.Font;
  * Holds utility methods for interacting with JavaFX UI Form Controls
  * Created by Javier on 9/8/2014.
  */
-public interface JavaFXUtilities {
+public interface FXUtilities {
+
+    /**
+     * Remove the white background from a TabPane
+     * @param tabPane a TabPane whose background to remove
+     */
+    public default void removeFormatting(TabPane tabPane) {
+        tabPane.getStyleClass().add("floating");
+    }
 
     public default Tab createTab(String tabName) {
         return new Tab(tabName);
