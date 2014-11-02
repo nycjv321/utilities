@@ -4,32 +4,34 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 
 /**
  * Holds utility methods for interacting with JavaFX UI Form Controls
  * Created by Javier on 9/8/2014.
  */
-public interface FXUtilities {
+interface FXUtilities {
 
     /**
      * Remove the white background from a TabPane
      * @param tabPane a TabPane whose background to remove
      */
-    public default void removeFormatting(TabPane tabPane) {
+    default void removeFormatting(TabPane tabPane) {
         tabPane.getStyleClass().add("floating");
     }
 
-    public default Tab createTab(String tabName) {
+    default Tab createTab(String tabName) {
         return new Tab(tabName);
     }
 
-    public default void setTextLimit(TextField textField, int length) {
+    default void setTextLimit(TextField textField, int length) {
         textField.setOnKeyTyped(event -> {
             String string = textField.getText();
             if (string.length() > length) {
@@ -39,14 +41,14 @@ public interface FXUtilities {
         });
     }
 
-    public default TitledPane createTiltedPane(String text, Node content) {
+    default TitledPane createTiltedPane(String text, Node content) {
         TitledPane tiltedPane = new TitledPane();
         tiltedPane.setText(text);
         tiltedPane.setContent(content);
         return tiltedPane;
     }
 
-    public default Accordion createAccordion(int x, TitledPane... tiltedPanes) {
+    default Accordion createAccordion(int x, TitledPane... tiltedPanes) {
         final Accordion accordion = new Accordion();
 
         for (TitledPane tiltedPane : tiltedPanes) {
@@ -56,19 +58,19 @@ public interface FXUtilities {
         return accordion;
     }
 
-    public default Label createLabel(String text, int width, Pos position) {
+    default Label createLabel(String text, int width, Pos position) {
         return createLabel(text, width, 0, position, null);
     }
 
-    public default Label createLabel(String text, int width, Pos position, Font font) {
+    default Label createLabel(String text, int width, Pos position, Font font) {
         return createLabel(text, width, 0, position, font);
     }
 
-    public default Label createLabel(int width, int height, Pos position) {
+    default Label createLabel(int width, int height, Pos position) {
         return createLabel(null, width, height, position, null);
     }
 
-    public default Label createLabel(String text, int width, int height, Pos position, Font font) {
+    default Label createLabel(String text, int width, int height, Pos position, Font font) {
         Label label = new Label(text);
         if (width != 0)
             label.setPrefWidth(width);
@@ -81,11 +83,11 @@ public interface FXUtilities {
     }
 
 
-    public default Button createButton(String text, EventHandler<ActionEvent> event) {
+    default Button createButton(String text, EventHandler<ActionEvent> event) {
         return createButton(text, null, 0, event);
     }
 
-    public default Button createButton(String text, Pos alignment, int preferredWidth, EventHandler<ActionEvent> event) {
+    default Button createButton(String text, Pos alignment, int preferredWidth, EventHandler<ActionEvent> event) {
         Button button = new Button();
         button.setText(text);
         if (alignment != null)
@@ -97,15 +99,15 @@ public interface FXUtilities {
         return button;
     }
 
-    public default Image createImage(String resourcePath) {
+    default Image createImage(String resourcePath) {
         return new Image(getClass().getResourceAsStream(resourcePath));
     }
 
-    public default void setToolTip(Control control, String value) {
+    default void setToolTip(Control control, String value) {
         control.setTooltip(new Tooltip(value));
     }
 
-    public default CheckBox createCheckBox(String caption, int width, Pos position, boolean selected) {
+    default CheckBox createCheckBox(String caption, int width, Pos position, boolean selected) {
         CheckBox checkBox = new CheckBox();
         checkBox.setText(caption);
         checkBox.setAlignment(position);
@@ -114,7 +116,7 @@ public interface FXUtilities {
         return checkBox;
     }
 
-    public default ImageView createImageView(Image image, int fitHeight, boolean preserveRatio) {
+    default ImageView createImageView(Image image, int fitHeight, boolean preserveRatio) {
         ImageView value = new ImageView();
         value.setFitHeight(fitHeight);
         value.setPreserveRatio(preserveRatio);
@@ -122,17 +124,17 @@ public interface FXUtilities {
         return value;
     }
 
-    public default TextField createTextField(Pos position) {
+    default TextField createTextField(Pos position) {
         TextField textField = new TextField();
         textField.setAlignment(position);
         return textField;
     }
 
-    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected) {
+    default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected) {
         return createChoiceBox(types, selected, null);
     }
 
-    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
+    default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
         ChoiceBox<Object> choiceBox = new ChoiceBox<>(types);
         choiceBox.getSelectionModel().select(selected);
         if (listener != null)
@@ -140,7 +142,7 @@ public interface FXUtilities {
         return choiceBox;
     }
 
-    public default ScrollPane createScrollPane(Node node, boolean fitToWidth, double preferredWidth, double preferredHeight) {
+    default ScrollPane createScrollPane(Node node, boolean fitToWidth, double preferredWidth, double preferredHeight) {
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(fitToWidth);
         scrollPane.setPrefWidth(preferredWidth);
@@ -148,5 +150,16 @@ public interface FXUtilities {
         scrollPane.setContent(node);
         return scrollPane;
     }
+
+
+    default GridPane createGrid() {
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(5);
+        grid.setVgap(5);
+        grid.setPadding(new Insets(5, 5, 5, 5));
+        return grid;
+    }
+
 
 }
