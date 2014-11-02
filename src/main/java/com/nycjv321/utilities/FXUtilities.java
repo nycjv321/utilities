@@ -17,21 +17,21 @@ import javafx.scene.text.Font;
  * Holds utility methods for interacting with JavaFX UI Form Controls
  * Created by Javier on 9/8/2014.
  */
-interface FXUtilities {
+public interface FXUtilities {
 
     /**
      * Remove the white background from a TabPane
      * @param tabPane a TabPane whose background to remove
      */
-    default void removeFormatting(TabPane tabPane) {
+    public default void removeFormatting(TabPane tabPane) {
         tabPane.getStyleClass().add("floating");
     }
 
-    default Tab createTab(String tabName) {
+    public default Tab createTab(String tabName) {
         return new Tab(tabName);
     }
 
-    default void setTextLimit(TextField textField, int length) {
+    public default void setTextLimit(TextField textField, int length) {
         textField.setOnKeyTyped(event -> {
             String string = textField.getText();
             if (string.length() > length) {
@@ -41,14 +41,14 @@ interface FXUtilities {
         });
     }
 
-    default TitledPane createTiltedPane(String text, Node content) {
+    public default TitledPane createTiltedPane(String text, Node content) {
         TitledPane tiltedPane = new TitledPane();
         tiltedPane.setText(text);
         tiltedPane.setContent(content);
         return tiltedPane;
     }
 
-    default Accordion createAccordion(int x, TitledPane... tiltedPanes) {
+    public default Accordion createAccordion(int x, TitledPane... tiltedPanes) {
         final Accordion accordion = new Accordion();
 
         for (TitledPane tiltedPane : tiltedPanes) {
@@ -58,19 +58,19 @@ interface FXUtilities {
         return accordion;
     }
 
-    default Label createLabel(String text, int width, Pos position) {
+    public default Label createLabel(String text, int width, Pos position) {
         return createLabel(text, width, 0, position, null);
     }
 
-    default Label createLabel(String text, int width, Pos position, Font font) {
+    public default Label createLabel(String text, int width, Pos position, Font font) {
         return createLabel(text, width, 0, position, font);
     }
 
-    default Label createLabel(int width, int height, Pos position) {
+    public default Label createLabel(int width, int height, Pos position) {
         return createLabel(null, width, height, position, null);
     }
 
-    default Label createLabel(String text, int width, int height, Pos position, Font font) {
+    public default Label createLabel(String text, int width, int height, Pos position, Font font) {
         Label label = new Label(text);
         if (width != 0)
             label.setPrefWidth(width);
@@ -83,11 +83,11 @@ interface FXUtilities {
     }
 
 
-    default Button createButton(String text, EventHandler<ActionEvent> event) {
+    public default Button createButton(String text, EventHandler<ActionEvent> event) {
         return createButton(text, null, 0, event);
     }
 
-    default Button createButton(String text, Pos alignment, int preferredWidth, EventHandler<ActionEvent> event) {
+    public default Button createButton(String text, Pos alignment, int preferredWidth, EventHandler<ActionEvent> event) {
         Button button = new Button();
         button.setText(text);
         if (alignment != null)
@@ -99,15 +99,15 @@ interface FXUtilities {
         return button;
     }
 
-    default Image createImage(String resourcePath) {
+    public default Image createImage(String resourcePath) {
         return new Image(getClass().getResourceAsStream(resourcePath));
     }
 
-    default void setToolTip(Control control, String value) {
+    public default void setToolTip(Control control, String value) {
         control.setTooltip(new Tooltip(value));
     }
 
-    default CheckBox createCheckBox(String caption, int width, Pos position, boolean selected) {
+    public default CheckBox createCheckBox(String caption, int width, Pos position, boolean selected) {
         CheckBox checkBox = new CheckBox();
         checkBox.setText(caption);
         checkBox.setAlignment(position);
@@ -116,7 +116,7 @@ interface FXUtilities {
         return checkBox;
     }
 
-    default ImageView createImageView(Image image, int fitHeight, boolean preserveRatio) {
+    public default ImageView createImageView(Image image, int fitHeight, boolean preserveRatio) {
         ImageView value = new ImageView();
         value.setFitHeight(fitHeight);
         value.setPreserveRatio(preserveRatio);
@@ -124,17 +124,17 @@ interface FXUtilities {
         return value;
     }
 
-    default TextField createTextField(Pos position) {
+    public default TextField createTextField(Pos position) {
         TextField textField = new TextField();
         textField.setAlignment(position);
         return textField;
     }
 
-    default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected) {
+    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected) {
         return createChoiceBox(types, selected, null);
     }
 
-    default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
+    public default ChoiceBox<Object> createChoiceBox(ObservableList<Object> types, Object selected, ChangeListener<Number> listener) {
         ChoiceBox<Object> choiceBox = new ChoiceBox<>(types);
         choiceBox.getSelectionModel().select(selected);
         if (listener != null)
@@ -142,7 +142,7 @@ interface FXUtilities {
         return choiceBox;
     }
 
-    default ScrollPane createScrollPane(Node node, boolean fitToWidth, double preferredWidth, double preferredHeight) {
+    public default ScrollPane createScrollPane(Node node, boolean fitToWidth, double preferredWidth, double preferredHeight) {
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(fitToWidth);
         scrollPane.setPrefWidth(preferredWidth);
