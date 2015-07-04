@@ -10,9 +10,11 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
@@ -22,11 +24,9 @@ import org.jdom2.input.SAXBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
@@ -143,6 +143,10 @@ public class HttpUtilities {
         }
     }
 
+    public static Header createBasicHeader(String key, String value) {
+        return new BasicHeader(key, value);
+    }
+
     /**
      * Post a String and return the Response Status Line. <p> Each request is recorded to the current logger in the following format:
      * "POSTing ${FILE} to ${URL}: ${STATUS_LINE}"
@@ -161,6 +165,20 @@ public class HttpUtilities {
             return getEmptyStatusLine();
         } finally {
             randomFileInTemp.deleteOnExit();
+        }
+    }
+
+    public static String post(String url, StringEntity stringEntity, Header... headers) {
+        try (CloseableHttpClient httpClient = createHttpClient()) {
+            HttpPost httpPost = create(METHOD.POST, url);
+            httpPost.setEntity(stringEntity);
+            httpPost.setHeaders(headers);
+            HttpResponse r = httpClient.execute(httpPost);
+            try (InputStreamReader inputStream = new InputStreamReader(r.getEntity().getContent())) {
+                return IOUtils.toString(inputStream);
+            }
+        } catch (IOException e) {
+            throw new HttpException(e);
         }
     }
 
@@ -242,12 +260,19 @@ public class HttpUtilities {
         }
     }
 
-    /**
-     * This exception is thrown when the request was not authorized
-     */
-    private static class UnAuthorizedException extends RuntimeException {
-        private UnAuthorizedException(String message) {
-            super(message);
+    public static StringEntity createStringEntity(String string) {
+        try {
+            return new StringEntity(string);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String get(URI uri, Header... headers) {
+        try {
+            return get(uri.toURL().toString(), headers);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -374,14 +399,6 @@ public class HttpUtilities {
         }
     }
 
-    public enum AUTHENTICATION_METHOD {
-        USERNAME_PASSWORD, NT
-    }
-
-    private enum METHOD {
-        HEAD, GET, POST, PUT
-    }
-
     /**
      * Create string that represents the parameters to a URL resource
      * @param parameters
@@ -401,6 +418,29 @@ public class HttpUtilities {
             }
         }
         return parametersString;
+    }
+
+    public enum AUTHENTICATION_METHOD {
+        USERNAME_PASSWORD, NT
+    }
+
+    private enum METHOD {
+        HEAD, GET, POST, PUT
+    }
+
+    /**
+     * This exception is thrown when the request was not authorized
+     */
+    private static class UnAuthorizedException extends RuntimeException {
+        private UnAuthorizedException(String message) {
+            super(message);
+        }
+    }
+
+    private static class HttpException extends RuntimeException {
+        public HttpException(Exception e) {
+            super(e);
+        }
     }
 
 
