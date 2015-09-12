@@ -14,7 +14,7 @@ public class CalendarUtilities {
         this.dateFormat = dateFormat;
     }
 
-    public Calendar getCalendar(int month, int day, int year) {
+    public static Calendar getCalendar(int month, int day, int year) {
         Calendar instance = Calendar.getInstance();
         instance.set(Calendar.MONTH, month - 1);
         instance.set(Calendar.DAY_OF_MONTH, day);

@@ -1,6 +1,11 @@
 package com.nycjv321.utilities;
 
+import com.google.common.primitives.Ints;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * Holds utility methods used to interact with Numbers
@@ -60,5 +65,17 @@ public final class NumberUtilities {
             total += number;
         }
         return total;
+    }
+
+
+    /**
+     * Return a shuffled list of integers.
+     * @param maxExclusive the upper bound (exclusive) for the range
+     * @return a list of shuffled values 0 - ({@code maxExclusive} - 1)
+     */
+    public static List<Integer> getShuffled(int maxExclusive) {
+        final List<Integer> numbers = Ints.asList(IntStream.range(0, maxExclusive).toArray());
+        Collections.shuffle(numbers);
+        return numbers;
     }
 }
