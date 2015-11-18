@@ -199,7 +199,7 @@ public class SimpleHttpClient {
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             validateResponse(response, url);
             logger.debug(String.format("GET %s: %s", url, response.getStatusLine()));
-            consume(response);
+            return consume(response);
         } catch (IOException e) {
             logger.error(e);
         }
