@@ -1,25 +1,15 @@
-package com.nycjv321.utilities;
-
+package com.nycjv321.utilities.http;
 
 import com.google.common.base.Strings;
+import com.nycjv321.utilities.FileUtilities;
+import com.nycjv321.utilities.http.exceptions.UnAuthorizedException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Logger;
@@ -37,77 +27,35 @@ import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.apache.logging.log4j.LogManager.getLogger;
 
 /**
- * Created by Javier L. Velasquez on 2/4/15.
+ * Created by fedora on 11/18/15.
  */
-public class HttpRequestManager {
-    public final int OK_RESPONSE = 200;
-    private final Logger logger = getLogger(HttpRequestManager.class);
+public class SimpleHttpClient {
+    private final Logger logger = getLogger(SimpleHttpClient.class);
     private final Requests.Timeouts timeouts;
-    private CredentialsProvider credentialsProvider;
     private boolean validateResponse = true;
+    private final Supplier<CloseableHttpClient> httpClientSupplier;
 
-    private HttpRequestManager(String userName, String password, AUTHENTICATION_METHOD authenticationMethod) {
-        this();
-        setCredentials(userName, password, authenticationMethod);
+    SimpleHttpClient(Supplier<CloseableHttpClient> httpClientSupplier, Requests.Timeouts timeouts) {
+        this.timeouts = timeouts;
+        this.httpClientSupplier = httpClientSupplier;
     }
 
-    private HttpRequestManager(String userName, String password) {
-        this(userName, password, AUTHENTICATION_METHOD.USERNAME_PASSWORD);
+    private SimpleHttpClient() {
+        httpClientSupplier = null;
+        timeouts = null;
     }
 
-    private HttpRequestManager() {
-        timeouts = Requests.Timeouts.getDefault();
-    }
-
-    public static HttpRequestManager create() {
-        return new HttpRequestManager();
-    }
-
-    public synchronized static void unchecked(HttpRequestManager http, Consumer<Consumer<?>> h) {
+    public synchronized static void unchecked(SimpleHttpClient http, Consumer<Consumer<?>> h) {
         boolean originalState = http.validateResponse;
         http.validateResponse = false;
         h.accept(h);
         http.validateResponse = originalState;
-    }
-
-    /**
-     * Set the credentials used to authenticate requests
-     *
-     * @param userName
-     * @param password
-     * @param authenticationMethod
-     */
-    private void setCredentials(String userName, String password, AUTHENTICATION_METHOD authenticationMethod) {
-        credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(
-                AuthScope.ANY,
-                createCredentials(userName, password, authenticationMethod)
-        );
-    }
-
-    private Credentials createCredentials(String userName, String password, AUTHENTICATION_METHOD authenticationMethod) {
-        final String credentialsString = String.format("%s:%s", userName, password);
-        switch (authenticationMethod) {
-            case USERNAME_PASSWORD:
-                return new UsernamePasswordCredentials(credentialsString);
-            case NT:
-                return new NTCredentials(credentialsString);
-            default:
-                throw new IllegalArgumentException("Invalid Authentication Method Provided");
-        }
-    }
-
-    private boolean hasCredentialsProvider() {
-        return Objects.nonNull(credentialsProvider);
     }
 
     @SuppressWarnings("unchecked")
@@ -141,35 +89,9 @@ public class HttpRequestManager {
                 .setConnectionRequestTimeout(timeouts.getConnectionRequestTimeout())
                 .build();
         request.setConfig(config);
-
     }
 
-    private CloseableHttpClient createHttpClient() {
-        if (hasCredentialsProvider()) {
-            return HttpClients.
-                    custom().
-                    setDefaultCredentialsProvider(credentialsProvider).
-                    build();
-        } else {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            try {
-                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            } catch (NoSuchAlgorithmException | KeyStoreException e) {
-                throw new RuntimeException(e);
-            }
-            SSLConnectionSocketFactory sslsf;
-            try {
-                sslsf = new SSLConnectionSocketFactory(
-                        builder.build());
-            } catch (NoSuchAlgorithmException | KeyManagementException e) {
-                throw new RuntimeException(e);
-            }
-            HttpClientBuilder client = HttpClients.custom().setSSLSocketFactory(
-                    sslsf);
-            client.setDefaultCredentialsProvider(credentialsProvider);
-            return client.build();
-        }
-    }
+
 
     /**
      * Perform a HTTP GET and convert the response body into a JSON Object. <p>
@@ -182,7 +104,7 @@ public class HttpRequestManager {
     public JSONObject getJSON(String url) throws JSONException {
         final String responseBody = get(url);
         if (Strings.isNullOrEmpty(responseBody)) {
-            throw new HttpException(String.format("%s returned an empty or null response", url));
+            throw new com.nycjv321.utilities.http.exceptions.HttpException(String.format("%s returned an empty or null response", url));
         }
         return new JSONObject(responseBody);
     }
@@ -198,19 +120,23 @@ public class HttpRequestManager {
         try (StringReader characterStream = new StringReader(get(url))) {
             return jdomBuilder.build(characterStream);
         } catch (JDOMException | IOException e) {
-            throw new HttpException(String.format("Error creating document of %s. See: %s", url, e));
+            throw new com.nycjv321.utilities.http.exceptions.HttpException(String.format("Error creating document of %s. See: %s", url, e));
         }
     }
 
-    /**
-     * Post a String and return the Response Status Line. <p> Each request is recorded to the current logger in the following format:
-     * "POSTing ${FILE} to ${URL}: ${STATUS_LINE}"
-     *
-     * @param url     a url to POST
-     * @param body    a string representing the request body
-     * @param headers any headers to associate with the request
-     * @return a string representation of the contents of the HTTP Response
-     */
+    public HttpResponse post(String url, Header... headers) {
+            return post(url, "", headers);
+    }
+
+        /**
+         * Post a String and return the Response Status Line. <p> Each request is recorded to the current logger in the following format:
+         * "POSTing ${FILE} to ${URL}: ${STATUS_LINE}"
+         *
+         * @param url     a url to POST
+         * @param body    a string representing the request body
+         * @param headers any headers to associate with the request
+         * @return a string representation of the contents of the HTTP Response
+         */
     public HttpResponse post(String url, String body, Header... headers) {
         final File randomFileInTemp = FileUtilities.getRandomFileInTemp();
         try {
@@ -251,6 +177,10 @@ public class HttpRequestManager {
         }
     }
 
+    private CloseableHttpClient createHttpClient() {
+        return httpClientSupplier.get();
+    }
+
     public String get(URL url) {
         return get(url.toString());
     }
@@ -269,24 +199,31 @@ public class HttpRequestManager {
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             validateResponse(response, url);
             logger.debug(String.format("GET %s: %s", url, response.getStatusLine()));
-            HttpEntity entity = response.getEntity();
-            // Attempt to create an input stream of the content and create its string representation as UTF8
-            try (InputStream content = entity.getContent()) {
-                return IOUtils.toString(content, "UTF-8").trim();
-            } finally {
-                try {
-                    EntityUtils.consume(entity);
-                } catch (IOException e) {
-                    if (e.getMessage().contains("Unauthorized")) {
-                        throw new UnAuthorizedException(String.format("Request was not authorized by server. See: %s", e));
-                    }
-                    logger.error(e);
-                }
-            }
+            consume(response);
         } catch (IOException e) {
             logger.error(e);
         }
         return "";
+    }
+
+    public static String consume(HttpResponse response) {
+        HttpEntity entity = response.getEntity();
+
+        // Attempt to create an input stream of the content and create its string representation as UTF8
+        try (InputStream content = entity.getContent()) {
+            return IOUtils.toString(content, "UTF-8").trim();
+        } catch (IOException e) {
+            return "";
+        } finally {
+            try {
+                EntityUtils.consume(entity);
+            } catch (IOException e) {
+                if (e.getMessage().contains("Unauthorized")) {
+                    throw new UnAuthorizedException(String.format("Request was not authorized by server. See: %s", e));
+                }
+                return "";
+            }
+        }
     }
 
     public HttpResponse getResponse(URL url) {
@@ -304,7 +241,7 @@ public class HttpRequestManager {
         } catch (IOException e) {
             logger.error(e);
         }
-        throw new HttpException(String.format("Could not get %s", url));
+        throw new com.nycjv321.utilities.http.exceptions.HttpException(String.format("Could not get %s", url));
     }
 
     /**
@@ -316,13 +253,9 @@ public class HttpRequestManager {
     private void validateResponse(HttpResponse response, String url) {
         if (validateResponse) {
             if (response.getStatusLine().getStatusCode() >= 400) {
-                throw new HttpException(String.format("Got %s for %s", response.getStatusLine(), url));
+                throw new com.nycjv321.utilities.http.exceptions.HttpException(String.format("Got %s for %s", response.getStatusLine(), url));
             }
         }
-    }
-
-    public void validateResponses(boolean validateResponses) {
-        validateResponse = validateResponses;
     }
 
     /**
@@ -423,7 +356,7 @@ public class HttpRequestManager {
             original.setAccessible(true);
             return (HttpResponse) original.get(closeableHttpResponse);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new HttpException(String.format("%s did not contain an original HttpResponse", closeableHttpResponse));
+            return closeableHttpResponse;
         }
     }
 
@@ -448,78 +381,8 @@ public class HttpRequestManager {
         }
     }
 
-    public enum AUTHENTICATION_METHOD {
-        USERNAME_PASSWORD, NT
-    }
-
     private enum METHOD {
         HEAD, GET, POST, PUT
-    }
-
-    public static class Requests {
-        public static class Timeouts {
-
-            private static final Timeouts timeouts;
-
-            static {
-                timeouts = new Timeouts();
-                timeouts.setConnectionRequestTimeout(10000);
-                timeouts.setConnectTimeout(10000);
-                timeouts.setSocketTimeout(10000);
-            }
-
-            private int socketTimeout;
-            private int connectTimeout;
-            private int connectionRequestTimeout;
-
-            public static Timeouts getDefault() {
-                return timeouts;
-            }
-
-            public int getConnectTimeout() {
-                return connectTimeout;
-            }
-
-            public void setConnectTimeout(int connectTimeout) {
-                this.connectTimeout = connectTimeout;
-            }
-
-            public int getConnectionRequestTimeout() {
-                return connectionRequestTimeout;
-            }
-
-            public void setConnectionRequestTimeout(int connectionRequestTimeout) {
-                this.connectionRequestTimeout = connectionRequestTimeout;
-            }
-
-            public int getSocketTimeout() {
-                return socketTimeout;
-            }
-
-            public void setSocketTimeout(int socketTimeout) {
-                this.socketTimeout = socketTimeout;
-            }
-
-
-        }
-    }
-
-    /**
-     * This unchecked exception represents all http-related exceptions encountered in this class.
-     */
-    public final static class HttpException extends RuntimeException {
-        public HttpException(String message) {
-            super(message);
-        }
-    }
-
-    /**
-     * This exception is thrown when the request was not authorized
-     */
-    private class UnAuthorizedException extends RuntimeException {
-        private UnAuthorizedException(String message) {
-            super(message);
-        }
     }
 
 }
